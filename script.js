@@ -56,6 +56,7 @@
             gameboard.fill(null)
             currentPlayerIndex = 0
             currentPlayer = players[currentPlayerIndex]
+            gameEnded = false;
         }
 
         return { getGameBoard, getPlayers, isGameEnded, changeCurrentPlayer, setMove, checkWinner, setGameEnded, init }
@@ -163,6 +164,7 @@
         }
 
         const init = (players) => {
+            console.log("123")
             gameField.addEventListener("click",clickCellHandler)
             player1.disabled = true
             player2.disabled = true
