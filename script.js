@@ -22,9 +22,11 @@
 
         let currentPlayerIndex = 0
         let currentPlayer = players[currentPlayerIndex]
+        let gameEnded = false;
     
         const getGameBoard = () => gameboard
         const getPlayers = () => players
+        const isGameEnded = () => gameEnded
         
         const changeCurrentPlayer = () => {
             currentPlayerIndex = 1 - currentPlayerIndex;
@@ -43,10 +45,12 @@
             const won = WIN_PATTERNS.some(pattern => 
                 pattern.every(i => gameboard[i] === mark)
             )
-            if(won) return currentPlayer
-            if(gameboard.every(item =>  item !== null)) return -1
-            return false
+            if(won) return { winner: currentPlayer, draw: false }
+            if(gameboard.every(item =>  item !== null)) return { winner: null, draw: true }
+            return { winner: null, draw: false }
         }
+
+        const setGameEnded = (flag) => gameEnded = flag
 
         const init = () => {
             gameboard.fill(null)
@@ -54,20 +58,22 @@
             currentPlayer = players[currentPlayerIndex]
         }
 
-        return { getGameBoard, getPlayers, changeCurrentPlayer, setMove, checkWinner, init }
+        return { getGameBoard, getPlayers, isGameEnded, changeCurrentPlayer, setMove, checkWinner, setGameEnded, init }
     })()
 
         const Controller = (() => {
 
+
             const move = (idx) => {
+                if(Gameboard.isGameEnded()) return
                 if(!Gameboard.setMove(idx)) return
-                const winner = Gameboard.checkWinner()
+                const winnerObj = Gameboard.checkWinner()
                 UI.renderBoard()
-                if(!winner){
+                if(!winnerObj.winner && !winnerObj.draw){
                     Gameboard.changeCurrentPlayer()
                 }
                 else{
-                    UI.showWinner(winner)
+                    endGame(winnerObj)
                 }
             }
 
@@ -79,7 +85,14 @@
                 UI.init(players)
             }
 
-            return { move, newGame }
+            const endGame = (winnerObj) => {
+                Gameboard.setGameEnded(true)
+                UI.showWinner(winnerObj)
+                UI.disableBoard()
+                UI.unlockInputs()
+            }
+
+            return { move, newGame, endGame }
         })()
  
 
@@ -99,7 +112,7 @@
 
 
 
-        const renderBoard = function(){
+        const renderBoard = () => {
             Gameboard.getGameBoard().forEach((item,idx) => {
                 if(item){
                     cells[idx].textContent = item
@@ -112,9 +125,18 @@
             })
         }
 
+        const disableBoard = () => {
+            gameField.removeEventListener("click",clickCellHandler)
+        }
+
+        const unlockInputs = () => {
+            player1.disabled = false
+            player2.disabled = false
+        }
+
         const clickCellHandler = (e) => {
             if(!e.target.classList.contains("cell")) return
-            const idx = e.target.dataset.id.toString();
+            const idx = parseInt(e.target.dataset.id, 10);
             Controller.move(idx)
         }
 
@@ -127,20 +149,17 @@
 
         }
 
-        const showWinner = (winner) => {
-            if(winner){
-                gameField.removeEventListener("click",clickCellHandler)
-                player1.disabled = false
-                player2.disabled = false
-                if(winner === -1){
-                    winnerText.textContent = "Вы сыграли вничью"
-                }
-                else{
-                    winnerText.textContent = `Победитель: ${winner.getName()}`
-                }
-                winnerModal.style.display = "block"
-                
+        const showWinner = (winnerObj) => {
+            if(winnerObj.winner){
+                winnerText.textContent = `Победитель: ${winnerObj.winner.getName()}`
             }
+
+            if(winnerObj.draw){
+                winnerText.textContent = "Вы сыграли вничью"
+            }
+               
+            winnerModal.style.display = "block"    
+    
         }
 
         const init = (players) => {
@@ -151,6 +170,7 @@
             player2Label.textContent = players[1].getName()
             player1.value = ''
             player2.value = ''
+            winnerText.textContent = ''
             winnerModal.style.display = "none";
         }
 
@@ -158,7 +178,7 @@
 
 
 
-        return { renderBoard, showWinner, init }
+        return { renderBoard, showWinner, init, disableBoard, unlockInputs }
         
     })()
 
