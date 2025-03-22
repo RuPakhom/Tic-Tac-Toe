@@ -81,8 +81,12 @@
             const newGame = (p1,p2) =>{
                 Gameboard.init()
                 const players = Gameboard.getPlayers()
-                players[0].setName(p1)
+                if(p1){
+                    players[0].setName(p1)
+                }
+                if(p2){
                 players[1].setName(p2)
+                }
                 UI.init(players)
             }
 
@@ -137,13 +141,13 @@
 
         const clickCellHandler = (e) => {
             if(!e.target.classList.contains("cell")) return
-            const idx = parseInt(e.target.dataset.id, 10);
+            const idx = parseInt(e.target.dataset.id, 10)
             Controller.move(idx)
         }
 
         const newGameHandler = () => {
-            const p1 = player1.value || "Игрок 1"
-            const p2 = player2.value || "Игрок 2"
+            const p1 = player1.value
+            const p2 = player2.value
             Controller.newGame(p1,p2)
             renderBoard()
 
