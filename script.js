@@ -164,7 +164,6 @@
         }
 
         const init = (players) => {
-            console.log("123")
             gameField.addEventListener("click",clickCellHandler)
             player1.disabled = true
             player2.disabled = true
